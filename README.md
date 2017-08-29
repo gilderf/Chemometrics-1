@@ -3,7 +3,7 @@ a python package for chemometrics
 
 # a simple example
 
-# dependecy
+# dependency
 - numpy
 - sklearn
 - pandas
