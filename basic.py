@@ -3,12 +3,11 @@
 import pandas as pd
 import pickle
 import numpy as np
-import matplotlib.pyplot as plt
 from pyteomics import mzxml, auxiliary
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
+import re
+import jcamp
 
 
 def merge_csv(flist, **kwargs):
@@ -30,7 +29,7 @@ def pload(file_name):
         return pickle.load(f)
 
 
-def avg_mass(mass, delta=.1, min_intensity=0.05):
+def avg_mass(mass, delta=.01, min_intensity=0):
     """
     平均色谱图
     :param mass: dataframe columns = ['mz','intensity','rt']
@@ -111,4 +110,29 @@ def get_rtrange(eic, window_size=5):
         threshold = i+1
     rt_range = eic.loc[mavg > threshold].rt
     return rt_range.min(), rt_range.max(), threshold
+
+
+def filter_homo(mass_list, mass_num, base_on):
+    mass_mask = np.any(abs((np.round(mass_list.values.reshape(-1, 1) - base_on) + .01) % mass_num) < .1, axis=1)
+    return mass_mask
+
+
+def regstr(text, regexp):
+    # 正则匹配子字符串
+
+    m = re.search(regexp, text)
+    if m:
+        return m.group(0)
+
+
+def read_dx(dx_file):
+    """
+    :param dx_file: .dx红外光谱文件
+    :return: pd.Series,波数-吸光度
+    """
+    with open(dx_file) as dx:
+        data = jcamp.jcamp_read(dx)
+        ir = pd.Series(data['y'], name=data['yunits'], index=data['x'])
+        ir.index.name = data['xunits']
+    return ir
 
