@@ -8,7 +8,7 @@ def avg_mass(mass, delta=20*ppm, min_intensity=0):
     """
     平均质谱图
     :param mass: dataframe columns = ['mz','intensity','rt']
-    :param delta:     离子峰容差 e.g .01 Da
+    :param delta:     离子峰容差 e.g 20ppm
     :param min_intensity: 最小峰强度
     :return: 平均质谱图
     """
