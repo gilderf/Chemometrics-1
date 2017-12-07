@@ -1,8 +1,4 @@
 import pandas as pd
-import numpy as np
-import pickle
-from pyteomics import mzxml
-from basic import get_real, rep, read_mzxml, psave, pload
 
 # 常数constant
 ppm = 1e-6
