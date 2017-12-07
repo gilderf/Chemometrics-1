@@ -85,38 +85,6 @@ def read_mzxml(file_path):
     return df
 
 
-def mz2n(map0, mz_list, error):
-    """
-    mz-->PEG个数n
-    :param map0: 已知{mz:n}映射
-    :param mz_list:测定的mz列表
-    :param error: mz误差限度
-    :return: 测定mz对应的n
-    """
-    mz_inlist = [map0['聚合度n'].loc[np.abs(map0.mz.values - mzi) < mzi * error * 20e-6].values for mzi in mz_list]
-    df_mz = pd.DataFrame(mz_list)
-    df_mz['聚合度n'] = [np.asscalar(i) if len(i) > 0 else np.nan for i in mz_inlist]
-    return df_mz
-
-
-def get_rtrange(eic, window_size=5):
-    # 获取单峰EIC图谱的保留时间范围
-    mavg = eic.intensity.rolling(window_size, center=True).mean()
-    ints = eic.intensity.sort_values(ascending=False)
-    for i in ints:
-        ngrp = (mavg > i).diff().sum()
-        if ngrp > 2.5:
-            break
-        threshold = i+1
-    rt_range = eic.loc[mavg > threshold].rt
-    return rt_range.min(), rt_range.max(), threshold
-
-
-def filter_homo(mass_list, mass_num, base_on):
-    mass_mask = np.any(abs((np.round(mass_list.values.reshape(-1, 1) - base_on) + .01) % mass_num) < .1, axis=1)
-    return mass_mask
-
-
 def regstr(text, regexp):
     # 正则匹配子字符串
 
