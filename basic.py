@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 import re
 import jcamp
-
+PPM = 1e-6
 
 def merge_csv(flist, **kwargs):
     """
@@ -29,7 +29,7 @@ def pload(file_name):
         return pickle.load(f)
 
 
-def avg_mass(mass, delta=.01, min_intensity=0):
+def avg_mass(mass, delta=20*PPM, min_intensity=0):
     """
     平均色谱图
     :param mass: dataframe columns = ['mz','intensity','rt']
@@ -38,7 +38,7 @@ def avg_mass(mass, delta=.01, min_intensity=0):
     :return: 平均色谱图
     """
     mass = mass.sort_values(by='mz')
-    mass['cat'] = (mass.mz.diff() > delta).cumsum()
+    mass['cat'] = (mass.mz.diff() > mass.mz*delta).cumsum()
     group = mass.groupby('cat')
     mz = group.apply(lambda x: x.mz.dot(x.intensity / x.intensity.sum()))
     mz.name = 'mz'
@@ -135,4 +135,5 @@ def read_dx(dx_file):
         ir = pd.Series(data['y'], name=data['yunits'], index=data['x'])
         ir.index.name = data['xunits']
     return ir
+
 
