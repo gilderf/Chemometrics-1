@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
-import pandas as pd
 import pickle
-import numpy as np
 from pyteomics import mzxml, auxiliary
 import pandas as pd
 import numpy as np
 import re
 import jcamp
+import spc
+from io import StringIO
 
 
 def merge_csv(flist, **kwargs):
@@ -72,3 +72,17 @@ def read_dx(dx_file):
     return ir
 
 
+def read_spc(spc_file):
+    """
+    调用spc库，读取spc文件
+    :param spc_file:
+    :return: dataframe
+             index：波数
+             values: log(1/R)
+    """
+    f = spc.File(spc_file)
+    stringIO = StringIO(f.data_txt())
+    df = pd.read_csv(stringIO, '\t', index_col=0, header=None)
+    df1 = pd.DataFrame(df.values, index=df.index, columns=[f.__dict__['ylabel']])
+    df1.index.name = f.__dict__['xlabel']
+    return df1
