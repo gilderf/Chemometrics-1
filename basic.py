@@ -8,6 +8,8 @@ import re
 import jcamp
 import spc
 from io import StringIO
+import itertools
+import matplotlib.pyplot as plt
 
 
 def merge_csv(flist, **kwargs):
@@ -53,7 +55,12 @@ def read_mzxml(file_path):
 
 
 def regstr(text, regexp):
-    # 正则匹配子字符串
+    """
+    正则匹配子字符串
+    :param text:
+    :param regexp:
+    :return:
+    """
 
     m = re.search(regexp, text)
     if m:
@@ -86,3 +93,17 @@ def read_spc(spc_file):
     df1 = pd.DataFrame(df.values, index=df.index, columns=[f.__dict__['ylabel']])
     df1.index.name = f.__dict__['xlabel']
     return df1
+
+
+def make_weights(x):
+    """
+    从x按列生成weight
+    :param x: column vector或者按列排列的matrix
+    :return: weights
+    """
+    x = np.array(x)
+    if len(x.shape) < 2:
+        x = x.reshape(-1, 1)
+    weights = x/x.sum(axis=0)
+    return weights
+
