@@ -10,6 +10,7 @@ import spc
 from io import StringIO
 import itertools
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 
 def merge_csv(flist, **kwargs):
@@ -106,4 +107,17 @@ def make_weights(x):
         x = x.reshape(-1, 1)
     weights = x/x.sum(axis=0)
     return weights
+
+
+def plot_ConfusionMatrix(cm, unique_labels):
+    """
+    画混淆矩阵
+    :param cm: confusionMatrix
+    :param unique_labels: 各类的标签
+    :return:
+    """
+    cm_norm = cm/cm.sum(axis=1)
+    sns.heatmap(cm_norm, annot=cm, xticklabels=unique_labels, yticklabels=unique_labels)
+    plt.xlabel('预测值')
+    plt.ylabel('真实值')
 
