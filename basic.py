@@ -109,14 +109,17 @@ def make_weights(x):
     return weights
 
 
-def plot_ConfusionMatrix(cm, unique_labels):
+def plot_ConfusionMatrix(cm, unique_labels, normalize=True):
     """
     画混淆矩阵
     :param cm: confusionMatrix
     :param unique_labels: 各类的标签
+    :param normalize: 是否normalize
     :return:
     """
-    cm_norm = cm/cm.sum(axis=1)
+    cm_norm = cm
+    if normalize:
+        cm_norm = cm/cm.sum(axis=1)
     sns.heatmap(cm_norm, annot=cm, xticklabels=unique_labels, yticklabels=unique_labels)
     plt.xlabel('预测值')
     plt.ylabel('真实值')
