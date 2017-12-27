@@ -11,6 +11,10 @@ from io import StringIO
 import itertools
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import GridSearchCV, train_test_split
+
 
 
 def merge_csv(flist, **kwargs):
@@ -124,3 +128,40 @@ def plot_ConfusionMatrix(cm, unique_labels, normalize=True):
     plt.xlabel('预测值')
     plt.ylabel('真实值')
 
+
+def train_and_evaluate(X, labels, clf=None, params_grid=None,
+                       verbose=True, **kwargs):
+    """
+    train and evaluate
+    :param X:
+    :param labels:
+    :param clf:
+    :param params_grid:
+    :param verbose:
+    :param kwargs:
+    :return:
+    """
+
+    # default parameters
+    if params_grid is None and clf is None:
+        clf = KNeighborsClassifier()
+        params_grid = {'n_neighbors': range(1, 5)}
+    if params_grid is None and clf is not None:
+        params_grid = {}
+
+    # split the data
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, labels, test_size=0.33)
+
+    # train the model
+    clf = GridSearchCV(clf, params_grid, n_jobs=-1, cv=3)
+    clf = clf.fit(X_train, y_train)
+
+    # evaluate the model
+    if verbose:
+        mean_accuracy = clf.score(X_test, y_test)
+        print('test set mean accuracy is {}%'.format(mean_accuracy*100))
+        cm = confusion_matrix(y_test, clf.predict(X_test))
+        unique_labels = np.unique(y_test)
+        plot_ConfusionMatrix(cm, unique_labels)
+    return clf
