@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import pickle
 from pyteomics import mzxml, auxiliary
 import pandas as pd
@@ -16,7 +14,6 @@ from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import GridSearchCV, train_test_split
 
 
-
 def merge_csv(flist, **kwargs):
     """
         合并csv
@@ -24,13 +21,13 @@ def merge_csv(flist, **kwargs):
     return pd.concat([pd.read_csv(f, **kwargs) for f in flist], axis=1)
 
 
-def psave(data, file_name):
+def psave(data=None, file_name=None):
     # 保存数据
     with open(file_name, 'wb') as f:
         pickle.dump(data, f)
 
 
-def pload(file_name):
+def pload(file_name=None):
     # 读取数据
     with open(file_name, 'rb') as f:
         return pickle.load(f)
@@ -113,18 +110,21 @@ def make_weights(x):
     return weights
 
 
-def plot_ConfusionMatrix(cm, unique_labels, normalize=True):
+def plot_ConfusionMatrix(cm, sorted_unique_labels, normalize=True):
     """
     画混淆矩阵
     :param cm: confusionMatrix
-    :param unique_labels: 各类的标签
+    :param sorted_unique_labels: 各类的标签
     :param normalize: 是否normalize
     :return:
     """
+    labels = sorted_unique_labels
     cm_norm = cm
     if normalize:
-        cm_norm = cm/cm.sum(axis=1)
-    sns.heatmap(cm_norm, annot=cm, xticklabels=unique_labels, yticklabels=unique_labels)
+        try:
+            cm_norm = cm/cm.sum(axis=1)
+        except: pass
+    sns.heatmap(cm_norm, annot=cm, xticklabels=labels, yticklabels=labels)
     plt.xlabel('预测值')
     plt.ylabel('真实值')
 
@@ -164,4 +164,38 @@ def train_and_evaluate(X, labels, clf=None, params_grid=None,
         cm = confusion_matrix(y_test, clf.predict(X_test))
         unique_labels = np.unique(y_test)
         plot_ConfusionMatrix(cm, unique_labels)
+    return clf
+
+
+def scatter(x, y, label):
+    """
+    scatter plot for group data
+    :param x:
+    :param y:
+    :param label:
+    :return:
+    """
+    for l in set(label):
+        mask = label==l
+        plt.scatter(x[mask], y[mask], label=l)
+    plt.legend()
+
+
+def cal_pct(mask):
+    pct = sum(mask)/len(mask)
+    return pct
+
+
+def build_clf(X_train, y_train, cv=3):
+    """
+
+    :param X_train:
+    :param y_train:
+    :param cv
+    :return:
+    """
+    clf = KNeighborsClassifier()
+    params_grid = {'n_neighbors': range(1, 10)}
+    clf = GridSearchCV(clf, params_grid, n_jobs=-1, cv=cv)
+    clf = clf.fit(X_train, y_train)
     return clf
