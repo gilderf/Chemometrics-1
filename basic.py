@@ -199,3 +199,9 @@ def build_clf(X_train, y_train, cv=3):
     clf = GridSearchCV(clf, params_grid, n_jobs=-1, cv=cv)
     clf = clf.fit(X_train, y_train)
     return clf
+
+
+def read_hplc_csv(hplc_csv):
+    with open(hplc_csv,'rb') as csv:
+        hplc = pd.read_csv(csv,header=None,names=['retension_time','intensity']).set_index('retension_time')
+        return hplc
