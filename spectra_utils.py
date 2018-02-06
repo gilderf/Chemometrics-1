@@ -31,5 +31,30 @@ def MSC(X, reference=None):
     return X
 
 
+def first_derivative(X, n=1):
+    # 导数
+    _, m = X.shape
+    d = np.diff(X, n=n, axis=0)
+    d1_X = np.vstack([np.ones((n,m)), d])
+    return d1_X
+
+
+def derivative(X, n=1):
+    # 导数
+    _, m = X.shape
+    d = np.diff(X, n=n, axis=0)
+    d1_X = np.vstack([np.ones((n,m)), d])
+    return d1_X
+
+
+if __name__ == '__main__':
+    X = np.random.randn(2, 10)
+    MSC(X)
+    SNV(X)
+    first_derivative(X)
+
+
+
+
 
 

@@ -12,3 +12,4 @@ import seaborn as sns
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import GridSearchCV, train_test_split
+from Chemometrics.basic import *

@@ -122,7 +122,7 @@ def plot_ConfusionMatrix(cm, sorted_unique_labels, normalize=True):
     cm_norm = cm
     if normalize:
         try:
-            cm_norm = cm/cm.sum(axis=1)
+            cm_norm = cm/cm.sum(axis=1,keepdims=True)
         except: pass
     sns.heatmap(cm_norm, annot=cm, xticklabels=labels, yticklabels=labels)
     plt.xlabel('预测值')
