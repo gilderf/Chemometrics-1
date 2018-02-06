@@ -12,6 +12,8 @@ import seaborn as sns
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import GridSearchCV, train_test_split
+import graphviz
+from sklearn.tree import export_graphviz
 
 
 def merge_csv(flist, **kwargs):
@@ -205,3 +207,19 @@ def read_hplc_csv(hplc_csv):
     with open(hplc_csv,'rb') as csv:
         hplc = pd.read_csv(csv,header=None,names=['retension_time','intensity']).set_index('retension_time')
         return hplc
+
+
+def plot_tree(clf, feature_names):
+    """
+    plot decision tree, 画决策树
+    plot_tree（dt, X.columns)
+    :param clf:
+    :param feature_names:
+    :return:
+    """
+    dot_data = export_graphviz(clf, out_file=None,
+                                feature_names=feature_names,
+                                class_names=clf.classes_,
+                                filled=True, rounded=True,
+                                special_characters=True)
+    return graphviz.Source(dot_data)
