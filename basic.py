@@ -124,7 +124,7 @@ def plot_ConfusionMatrix(cm, sorted_unique_labels, normalize=True):
     cm_norm = cm
     if normalize:
         try:
-            cm_norm = cm/cm.sum(axis=1,keepdims=True)
+            cm_norm = cm/cm.sum(axis=1, keepdims=True)
         except: pass
     sns.heatmap(cm_norm, annot=cm, xticklabels=labels, yticklabels=labels)
     plt.xlabel('预测值')
@@ -223,3 +223,17 @@ def plot_tree(clf, feature_names):
                                 filled=True, rounded=True,
                                 special_characters=True)
     return graphviz.Source(dot_data)
+
+
+def plot_cm(X, y, estimator):
+    """
+    画混淆矩阵
+    :param X:
+    :param y:
+    :param estimator:
+    :return:
+    """
+    cm = confusion_matrix(y, estimator.predict(X))
+    plot_ConfusionMatrix(cm, estimator.classes_)
+
+
