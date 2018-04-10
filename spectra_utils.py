@@ -42,7 +42,7 @@ def derivative(X, degree=1):
     # 导数(列)
 
     d = np.diff(X, n=degree, axis=0)
-    d1_X = np.vstack([np.zeros((degree, X.shape[1])), d])
+    d1_X = np.vstack([np.nan*np.zeros((degree, X.shape[1])), d])
     return d1_X
 
 

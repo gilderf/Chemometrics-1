@@ -14,6 +14,7 @@ from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import GridSearchCV, train_test_split
 import graphviz
 from sklearn.tree import export_graphviz
+import matplotlib.pyplot as plt
 
 
 def merge_csv(flist, **kwargs):
@@ -236,4 +237,40 @@ def plot_cm(X, y, estimator):
     cm = confusion_matrix(y, estimator.predict(X))
     plot_ConfusionMatrix(cm, estimator.classes_)
 
+def plot1(x):
+    """
+    1维数据画图
+    :param x: 1d data
+    :return:
+    """
+    plt.scatter(x, np.zeros_like(x))
 
+
+def bar1(height):
+    """
+    1维数据bar图
+    :param x:
+    :return:
+    """
+    _ = range(len(x))
+    plt.bar(_, height=height)
+
+
+def new_ax():
+    f = plt.figure()
+    ax = f.add_axes()
+    return ax
+
+
+
+if __name__ == '__main__':
+    x = np.random.randn(10)
+    # check plot1
+    plot1(x)
+
+    # check bar1
+    new_ax()
+    bar1(x)
+
+    # new_ax
+    plt.show()
