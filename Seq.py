@@ -22,12 +22,17 @@ def normal(x, mu, sigma):
 
 
 def intensity2features(intensity, Nf):
+    """
+    特征生成
+
+    :param intensity:
+    :param Nf:
+    :return:
+    """
     f1 = intensity > 3 * Nf
-    # vi < vi+2
     f2 = np.full(intensity.shape, False, dtype=bool)
-    f2[:-2] = intensity[:-2] < intensity[2:]
-    # vi-2 < vi
-    f3 = np.full(intensity.shape, False, dtype=bool)
+    f2[:-2] = intensity[:-2] < intensity[2:]  # vi < vi+2
+    f3 = np.full(intensity.shape, False, dtype=bool)  # vi-2 < vi
     f3[2:] = intensity[:-2] < intensity[2:]
     fs = [{'>3Nf': {str(f1[i]): f1[i]},
            '<i+2': {str(f2[i]): f2[i]},
@@ -41,13 +46,6 @@ def intensity2features(intensity, Nf):
 def gen_sample(timerange, cs, mus, sigmas, b, bstd, peaks_start_intensity =2.5):
     """
     生成样本
-    :param timerange:
-    :param cs:
-    :param mus:
-    :param sigmas:
-    :param b:
-    :param bstd:
-    :return:
     """
     intensitys = [cs[i] * normal(timerange, mus[i], sigmas[i])for i in range(len(cs))]
     thresholds = [cs[i]*normal(mus[i]-peaks_start_intensity*sigmas[i], mus[i], sigmas[i]) for i in range(len(cs))]
@@ -59,6 +57,13 @@ def gen_sample(timerange, cs, mus, sigmas, b, bstd, peaks_start_intensity =2.5):
 
 
 def get_target(intensity, thresholds, b):
+    """
+    get_target
+    :param intensity:
+    :param thresholds:
+    :param b:
+    :return:
+    """
     thresholds.append(b)
     t = max(thresholds)
     target = np.zeros_like(intensity)

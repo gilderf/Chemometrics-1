@@ -4,6 +4,7 @@ import numpy as np
 
 def SNV(X, offset=0):
     """
+    样本（一行，针对观测）的方差归一化
     Standard Normal Variate
     :param X: 2d numpy array, a row is a sample, columns ara features
     :param offset:
@@ -38,19 +39,27 @@ def first_derivative(X):
     return d1_X
 
 
-def derivative(X, degree=1):
+def derivative(X, degree=1, axis=0):
     # 导数(列)
 
-    d = np.diff(X, n=degree, axis=0)
+    d = np.diff(X, n=degree, axis=axis)
     d1_X = np.vstack([np.nan*np.zeros((degree, X.shape[1])), d])
     return d1_X
 
 
-if __name__ == '__main__':
+def test_SNV_MSC_derivatie():
+    """
+    test
+    :return:
+    """
     X = np.random.randn(2, 10)
     MSC(X)
     SNV(X)
     first_derivative(X.T)
+
+
+if __name__ == '__main__':
+    test_SNV_MSC_derivatie()
 
 
 
