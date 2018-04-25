@@ -3,10 +3,15 @@ import pycrfsuite
 
 
 # ---峰识别pick peaking---
-# target
+# target map
 MAP = {0: 'baseline',
        1: 'up',
        2: 'down'}
+
+
+def Nf():
+    # todo
+    pass
 
 
 def crf_peaking(model_name, intensity, Nf):
