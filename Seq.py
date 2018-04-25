@@ -39,7 +39,7 @@ def intensity2features(intensity, Nf):
            '>i-2': {str(f3[i]): f3[i]},
            'intensity': intensity[i]
            }
-          for i in range(len(target_str))]
+          for i in range(len(intensity))]
     return fs
 
 
