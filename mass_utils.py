@@ -1,6 +1,5 @@
 import pandas as pd
 import xarray as xr
-import glob
 import numpy as np
 
 # 常数
@@ -53,7 +52,7 @@ def avg_spectrum(mz, intensity, threshold=20*PPM, embeding_avg='avg'):
     return ints
 
 
-def test_avg_scan():
+def test_avg_spectrum():
     mz = [100, 100.01]
     ints = [1, 2]
     threshold = .1
@@ -78,3 +77,8 @@ def nearsum(ds, threshold=.1):
     grps = df.groupby(np.cumsum(df.mz.diff() > threshold))
     _nearsum = pd.concat([grps.scans.first(), grps.mz.mean(), grps.its.sum()], axis=1)
     return _nearsum
+
+
+def test_nearsum():
+    ds = xr.open_dataset('./data/mass/1-10.cdf')
+    nearsum(ds)
