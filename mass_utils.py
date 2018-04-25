@@ -78,4 +78,3 @@ def nearsum(ds, threshold=.1):
     grps = df.groupby(np.cumsum(df.mz.diff() > threshold))
     _nearsum = pd.concat([grps.scans.first(), grps.mz.mean(), grps.its.sum()], axis=1)
     return _nearsum
-
