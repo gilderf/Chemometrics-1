@@ -55,6 +55,7 @@ model_name = 'test_crf_peaking'
 targets = [MAP[v] for v in target]
 features = intensity2features(intensity, Nf=b)
 
+
 def test_peaking():
     """
     测试peaking
@@ -62,6 +63,7 @@ def test_peaking():
     """
     train_crf_peaking(intensity, target, model_name=model_name)
     crf_peaking(model_name, intensity)
+
 
 def tskCRF():
     """

@@ -92,7 +92,7 @@ def train_crf_peaking(intensity, target, model_name=None, Nf=None, reverse=True,
     return trainer
 
 
-if __name__ == '__main__':
-    # 测试放在./tests/test_chromatogram.py
-    crf = sklearn_crfsuite.CRF(c1=1, c2=1e-3, max_iterations=100, all_possible_transitions=False)
-    crf.fit(features, targets)
+
+# 测试放在./tests/test_chromatogram.py
+# crf = sklearn_crfsuite.CRF(c1=1, c2=1e-3, max_iterations=100, all_possible_transitions=False)
+# crf.fit(features, targets) # feature 和pycrfsuit 里面格式不一致

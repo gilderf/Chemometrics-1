@@ -14,7 +14,6 @@ from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import GridSearchCV, train_test_split
 import graphviz
 from sklearn.tree import export_graphviz
-import matplotlib.pyplot as plt
 
 
 def merge_csv(flist, **kwargs):
@@ -237,40 +236,59 @@ def plot_cm(X, y, estimator):
     cm = confusion_matrix(y, estimator.predict(X))
     plot_ConfusionMatrix(cm, estimator.classes_)
 
-def plot1(x):
+
+def VIP(X, LVs):
     """
-    1维数据画图
-    :param x: 1d data
-    :return:
+    PLS-DA中变量重要性得分： 变量1与各潜变量的相关性的平方的加权平均 E(square(r))
+    LVs: 潜变量
+    X: 自变量
     """
-    plt.scatter(x, np.zeros_like(x))
+    if isinstance(X, pd.DataFrame):
+        X = X.values
+    # _corr = np.corrcoef(np.hstack([X, LVs]).T)[:-n_components, -n_components:]
+    # 内存占用太大
+    _X = X - np.mean(X, axis=0)
+    _LVs = LVs - np.mean(LVs, axis=0)
+    #
+    std_LVs = np.std(_LVs, axis=0)
+    din = std_LVs[:, np.newaxis]*np.std(_X, axis=0)
+    nume = _LVs.T.dot(_X)
+    _corr = nume/din
+    _squared_corr = np.square(_corr)
+    p = make_weights(np.var(LVs, axis=0))
+    VIP = _squared_corr.T.dot(p).flatten()
+    return VIP
 
 
-def bar1(height):
+def vcorr(v, X):
     """
-    1维数据bar图
-    :param x:
-    :return:
+    计算v和X两两列相关性
+    相关性： cov/std
+    :param v: m*n1
+    :param X: m*n2
+    :return: r: n1*n2
     """
-    _ = range(len(x))
-    plt.bar(_, height=height)
+    _X = X - np.mean(X, axis=0)
+    _v = v - np.mean(v, axis=0)
+    ss_v = np.sum(np.square(_v), axis=0)
+    ss_X = np.sum(np.square(_X), axis=0)
+    din = ss_v[:, np.newaxis]*ss_X
+    nume = _v.T.dot(_X)
+    _corr = nume/din
+    return _corr
 
 
-def new_ax():
-    f = plt.figure()
-    ax = f.add_axes()
-    return ax
+def test_VIP():
+    np.random.seed(1)
+    LVs = np.random.randn(10, 2)
+    X = np.random.randn(10, 100)
+    VIP(X, LVs)
+    VIP(pd.DataFrame(X), LVs)
 
 
-
-if __name__ == '__main__':
-    x = np.random.randn(10)
-    # check plot1
-    plot1(x)
-
-    # check bar1
-    new_ax()
-    bar1(x)
-
-    # new_ax
-    plt.show()
+def test_vcorr():
+    np.random.seed(1)
+    v = np.random.randn(10, 2)
+    X = np.random.randn(10, 100)
+    r = vcorr(v, X)
+    assert(np.all(np.abs(r) < 1))
