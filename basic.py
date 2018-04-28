@@ -7,13 +7,17 @@ import jcamp
 import spc
 from io import StringIO
 import itertools
+import graphviz
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.feature_selection import f_classif
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import GridSearchCV, train_test_split
-import graphviz
 from sklearn.tree import export_graphviz
+
+# constant
+SMALL_NUM = 1e-10
 
 
 def merge_csv(flist, **kwargs):
@@ -243,17 +247,10 @@ def VIP(X, LVs):
     LVs: 潜变量
     X: 自变量
     """
+    X = X.copy()
     if isinstance(X, pd.DataFrame):
         X = X.values
-    # _corr = np.corrcoef(np.hstack([X, LVs]).T)[:-n_components, -n_components:]
-    # 内存占用太大
-    _X = X - np.mean(X, axis=0)
-    _LVs = LVs - np.mean(LVs, axis=0)
-    #
-    std_LVs = np.std(_LVs, axis=0)
-    din = std_LVs[:, np.newaxis]*np.std(_X, axis=0)
-    nume = _LVs.T.dot(_X)
-    _corr = nume/din
+    _corr = vcorr(LVs, X)
     _squared_corr = np.square(_corr)
     p = make_weights(np.var(LVs, axis=0))
     VIP = _squared_corr.T.dot(p).flatten()
@@ -263,32 +260,80 @@ def VIP(X, LVs):
 def vcorr(v, X):
     """
     计算v和X两两列相关性
-    相关性： cov/std
+    相关性： cov/std,
+    cov： 中心化后变量间的内积
+    prod(std)： 中心化后变量自己的内积（平方和）的乘积
+    url: https://zh.wikipedia.org/wiki/%E7%9A%AE%E5%B0%94%E9%80%8A%E7%A7%AF%E7%9F%A9%E7%9B%B8%E5%85%B3%E7%B3%BB%E6%95%B0
     :param v: m*n1
     :param X: m*n2
     :return: r: n1*n2
     """
+    v = v.copy()
+    if len(v.shape) == 1: v = np.reshape(v, (-1, 1))
     _X = X - np.mean(X, axis=0)
     _v = v - np.mean(v, axis=0)
-    ss_v = np.sum(np.square(_v), axis=0)
-    ss_X = np.sum(np.square(_X), axis=0)
-    din = ss_v[:, np.newaxis]*ss_X
+    # square root of sum square
+    sss_v = np.sqrt(np.sum(np.square(_v), axis=0))
+    sss_X = np.sqrt(np.sum(np.square(_X), axis=0))
+    din = sss_v[:, np.newaxis]*sss_X
     nume = _v.T.dot(_X)
-    _corr = nume/din
+    din[din == 0] = np.inf
+    _corr = nume/din   # 保证din不能为0
     return _corr
 
 
+def nan_ANOVA(X, y):
+    """
+    ANOVA 方差分析， f_oneway, 如果var为零则为np.nan
+   """
+    _x = X.copy()
+    idx = _x.var() > 1e-5
+    _x = _x.loc[:, idx]
+    _F, _p = f_classif(_x, y)
+    F = pd.Series(np.nan, index=idx.index)
+    p = F.copy()
+    F.loc[idx] = _F
+    p.loc[idx] = _p
+    return F, p
+
+# ---------------------- tests -----------------------
 def test_VIP():
+    # shape check
     np.random.seed(1)
     LVs = np.random.randn(10, 2)
     X = np.random.randn(10, 100)
     VIP(X, LVs)
     VIP(pd.DataFrame(X), LVs)
+    # todo numerical check
 
 
 def test_vcorr():
     np.random.seed(1)
-    v = np.random.randn(10, 2)
+    v = np.linspace(1, 10, 10)
+    X = np.linspace(2, 10, 10)
+    r = vcorr(v, X[:, np.newaxis])
+    assert(r == 1)
+
+
+def test_ANOVA():
+    y = np.random.randn(10) > 0
     X = np.random.randn(10, 100)
-    r = vcorr(v, X)
-    assert(np.all(np.abs(r) < 1))
+    X[:, 0] = 1
+    F, p = nan_ANOVA(pd.DataFrame(X), 1*y)
+    assert(np.isnan(F[0]))
+
+
+if __name__ == '__main__':
+    from sklearn.cross_decomposition import PLSRegression
+    def metrics(X, y):
+        """
+        计算Marker的metrics
+        """
+        _F, p_F = nan_ANOVA(X, y)
+        plsr = PLSRegression().fit(X, y)
+        vip = VIP(X.values, plsr.x_scores_)
+        metrics = pd.DataFrame({'ANOVA_F': _F, 'ANOVA_p': p_F, 'VIP': vip})
+        return metrics
+
+    x2 = pload('./data/testdata.p')
+    ms = metrics(x2, x2.index.values)
