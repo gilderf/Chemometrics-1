@@ -82,3 +82,6 @@ def nearsum(ds, threshold=.1):
 def test_nearsum():
     ds = xr.open_dataset('./data/mass/1-10.cdf')
     nearsum(ds)
+
+
+# todo alignment

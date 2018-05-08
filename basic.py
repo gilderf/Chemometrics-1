@@ -136,7 +136,7 @@ def plot_ConfusionMatrix(cm, sorted_unique_labels, normalize=True):
 
 
 def train_and_evaluate(X, labels, clf=None, params_grid=None,
-                       verbose=True, **kwargs):
+                       verbose=True):
     """
     train and evaluate
     :param X:
@@ -314,7 +314,7 @@ def nan_ANOVA(X, y):
     p.loc[idx] = _p
     return F, p
 
-# ---------------------- tests -----------------------
+
 def test_VIP():
     # shape check
     np.random.seed(1)
@@ -339,6 +339,7 @@ def test_ANOVA():
     X[:, 0] = 1
     F, p = nan_ANOVA(pd.DataFrame(X), 1*y)
     assert(np.isnan(F[0]))
+
 
 def fold_change(a, b, type='log2'):
     """
