@@ -6,7 +6,6 @@ import re
 import jcamp
 import spc
 from io import StringIO
-import itertools
 import graphviz
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -15,6 +14,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.tree import export_graphviz
+from numba import jit
 
 # constant
 SMALL_NUM = 1e-10
@@ -257,6 +257,23 @@ def VIP(X, LVs):
     return VIP
 
 
+def vcov(v, X, max=True):
+    """
+    计算v和X两两列协方差
+    :param v:
+    :param X:
+    :return:
+    """
+    N = len(v)
+    v = v.copy()
+    if len(v.shape) == 1: v = np.reshape(v, (-1, 1))
+    _X = X - np.mean(X, axis=0)
+    if max: _X = _X/_X.max()
+    _v = v - np.mean(v, axis=0)
+    p1 = _v.T.dot(_X)/(N-1)
+    return p1
+
+
 def vcorr(v, X):
     """
     计算v和X两两列相关性
@@ -275,6 +292,7 @@ def vcorr(v, X):
     # square root of sum square
     sss_v = np.sqrt(np.sum(np.square(_v), axis=0))
     sss_X = np.sqrt(np.sum(np.square(_X), axis=0))
+    assert len(sss_v.shape)==1
     din = sss_v[:, np.newaxis]*sss_X
     nume = _v.T.dot(_X)
     din[din == 0] = np.inf
@@ -322,6 +340,16 @@ def test_ANOVA():
     F, p = nan_ANOVA(pd.DataFrame(X), 1*y)
     assert(np.isnan(F[0]))
 
+def fold_change(a, b, type='log2'):
+    """
+    fold change
+    """
+    if type == 'log2':
+        b = np.where(b > 0, b, np.ones_like(b) * np.nan)
+        a = np.where(a > 0, a, np.ones_like(a) * np.nan)
+        _fold_change = np.log2(b) - np.log2(a)
+    return _fold_change
+
 
 if __name__ == '__main__':
     from sklearn.cross_decomposition import PLSRegression
@@ -332,7 +360,10 @@ if __name__ == '__main__':
         _F, p_F = nan_ANOVA(X, y)
         plsr = PLSRegression().fit(X, y)
         vip = VIP(X.values, plsr.x_scores_)
-        metrics = pd.DataFrame({'ANOVA_F': _F, 'ANOVA_p': p_F, 'VIP': vip})
+        mean_ = X.groupby(y).mean()
+        fc_ = fold_change(mean_.iloc[0], mean_.iloc[1])
+        r = vcorr(y, X.values)
+        metrics = pd.DataFrame({'ANOVA_F': _F, 'ANOVA_p': p_F, 'VIP': vip, 'Fold_Change': fc_, 'Corr': r.flatten()})
         return metrics
 
     x2 = pload('./data/testdata.p')
