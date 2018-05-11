@@ -15,6 +15,7 @@ from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.tree import export_graphviz
 from numba import jit
+from sklearn.cross_decomposition import PLSCanonical
 
 # constant
 SMALL_NUM = 1e-10
@@ -241,21 +242,31 @@ def plot_cm(X, y, estimator):
     plot_ConfusionMatrix(cm, estimator.classes_)
 
 
-def VIP(X, LVs):
+def VIP(plsca):
     """
-    PLS-DA中变量重要性得分： 变量1与各潜变量的相关性的平方的加权平均 E(square(r))
-    LVs: 潜变量
-    X: 自变量
+    variable importance in projection
+    Camonical Powered PLS
+    w: p*n_components 潜变量的权重
+    SS: 1*m, the percentage of y explained by the m-th latent variable.
     """
-    X = X.copy()
-    if isinstance(X, pd.DataFrame):
-        X = X.values
-    _corr = vcorr(LVs, X)
-    _squared_corr = np.square(_corr)
-    p = make_weights(np.var(LVs, axis=0))
-    VIP = _squared_corr.T.dot(p).flatten()
-    return VIP
+    return _vip(plsca)
 
+
+def _vip(plsca):
+    t = plsca.x_scores_
+    w = plsca.x_weights_
+    q = plsca.y_loadings_
+    p, h = w.shape
+    vips = np.zeros((p,))
+
+    s = np.diag(t.T @ t @ q.T @ q).reshape(h, -1)
+    total_s = np.sum(s)
+
+    for i in range(p):
+        weight = np.array([ (w[i,j] / np.linalg.norm(w[:,j]))**2 for j in range(h) ])
+        vips[i] = np.sqrt(p*(s.T @ weight)/total_s)
+
+    return vips
 
 def vcov(v, X, max=True):
     """
@@ -320,8 +331,9 @@ def test_VIP():
     np.random.seed(1)
     LVs = np.random.randn(10, 2)
     X = np.random.randn(10, 100)
-    VIP(X, LVs)
-    VIP(pd.DataFrame(X), LVs)
+    y = np.random.randn(10, 1)
+    plsca = PLSCanonical(n_components=1).fit(X, y)
+    vips = VIP(plsca)
     # todo numerical check
 
 
@@ -353,14 +365,15 @@ def fold_change(a, b, type='log2'):
 
 
 if __name__ == '__main__':
-    from sklearn.cross_decomposition import PLSRegression
+    from sklearn.cross_decomposition import PLSRegression, PLSCanonical
     def metrics(X, y):
         """
         计算Marker的metrics
         """
         _F, p_F = nan_ANOVA(X, y)
-        plsr = PLSRegression().fit(X, y)
-        vip = VIP(X.values, plsr.x_scores_)
+        plsca = PLSCanonical(n_components=1)
+        plsca.fit(x2, x2.index.values)
+        vip = VIP(plsca)
         mean_ = X.groupby(y).mean()
         fc_ = fold_change(mean_.iloc[0], mean_.iloc[1])
         r = vcorr(y, X.values)
