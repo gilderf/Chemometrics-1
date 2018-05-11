@@ -268,15 +268,15 @@ def _vip(plsca):
 
     return vips
 
-def vcov(v, X, max=True):
+def vcov(t, X, max=True):
     """
     计算v和X两两列协方差
     :param v:
     :param X:
     :return:
     """
-    N = len(v)
-    v = v.copy()
+    N = len(t)
+    v = t.copy()
     if len(v.shape) == 1: v = np.reshape(v, (-1, 1))
     _X = X - np.mean(X, axis=0)
     if max: _X = _X/_X.max()
@@ -285,7 +285,7 @@ def vcov(v, X, max=True):
     return p1
 
 
-def vcorr(v, X):
+def vcorr(t, X):
     """
     计算v和X两两列相关性
     相关性： cov/std,
@@ -296,7 +296,7 @@ def vcorr(v, X):
     :param X: m*n2
     :return: r: n1*n2
     """
-    v = v.copy()
+    v = t.copy()
     if len(v.shape) == 1: v = np.reshape(v, (-1, 1))
     _X = X - np.mean(X, axis=0)
     _v = v - np.mean(v, axis=0)
