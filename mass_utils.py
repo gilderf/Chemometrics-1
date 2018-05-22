@@ -1,6 +1,8 @@
 import pandas as pd
 import xarray as xr
 import numpy as np
+from pyteomics.mass.mass import isotopic_composition_abundance,isotopologues
+from pyteomics.mass import mass
 
 # 常数
 PPM = 1e-6
@@ -79,9 +81,38 @@ def nearsum(ds, threshold=.1):
     return _nearsum
 
 
-def test_nearsum():
+def _test_nearsum():
     ds = xr.open_dataset('./data/mass/1-10.cdf')
     nearsum(ds)
 
+# todo alignment COW and DWT
 
-# todo alignment
+
+def molecule_isodist(formula):
+    """
+    分子同位素文库分布
+    """
+    all_comp = ((composition2formula(iso_comp),
+                 iso_comp,
+                 mass.calculate_mass(iso_comp),
+                 isotopic_composition_abundance(iso_comp))
+                for iso_comp in isotopologues(composition2formula(formula)))
+    iso_comps = pd.DataFrame(all_comp,
+                             columns=['Formula', 'Composition', 'Mass', 'relative_abundance'])
+    return iso_comps
+
+
+def composition2formula(composition):
+    """
+    组成转换为字符formula
+    """
+    formula_str = ''
+    for element in composition:
+        formula_str += element + str(composition[element])
+    return formula_str
+
+
+def test_molecule_isodist():
+    moles = pd.read_excel('./data/TW80分子式.xlsx')
+    next(molecule_isodist(f) for f in moles.to_dict(orient='records'))
+
