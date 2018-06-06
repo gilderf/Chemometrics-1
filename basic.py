@@ -16,6 +16,7 @@ from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.tree import export_graphviz
 from numba import jit
 from sklearn.cross_decomposition import PLSCanonical
+from bisect import bisect_left
 
 # constant
 SMALL_NUM = 1e-10
@@ -364,6 +365,32 @@ def fold_change(a, b, type='log2'):
     return _fold_change
 
 
+def interp1d(x, xp, yp):
+    """
+    1维线性插值
+    :param x:
+    :param xp:
+    :param yp:
+    :return:
+    """
+    # unique, sort
+    _xp, index = np.unique(xp, return_index=True)
+    _yp = [yp[i] for i in index]
+    # inter
+    _max, _min = max(xp), min(xp)
+
+    #  sort xp
+    # _xp, _yp= zip(*sorted(zip(xp, yp), key=lambda x: x[0]))
+    slopes = [(_ypi1 - _ypi)/(_xpi1 - _xpi) for _xpi, _xpi1, _ypi, _ypi1 in zip(_xp, _xp[1:], _yp, _yp[1:])]
+    # todo: out
+    y = [np.nan for xi in x]
+    for _x in x:
+        if (_x >= _min) and (_x <= _max):
+            ix = bisect_left(xp, _x)
+            y[ix] = yp[ix] + slopes[ix]*(_x-xp[ix]) #todo debug
+    return y
+
+
 if __name__ == '__main__':
     from sklearn.cross_decomposition import PLSRegression, PLSCanonical
     def metrics(X, y):
@@ -382,3 +409,4 @@ if __name__ == '__main__':
 
     x2 = pload('./data/testdata.p')
     ms = metrics(x2, x2.index.values)
+

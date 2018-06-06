@@ -1,8 +1,9 @@
 import pandas as pd
 import xarray as xr
 import numpy as np
-from pyteomics.mass.mass import isotopic_composition_abundance,isotopologues
+from pyteomics.mass.mass import isotopic_composition_abundance, isotopologues, nist_mass
 from pyteomics.mass import mass
+import heapq
 
 # 常数
 PPM = 1e-6
@@ -96,7 +97,7 @@ def molecule_isodist(formula):
                  iso_comp,
                  mass.calculate_mass(iso_comp),
                  isotopic_composition_abundance(iso_comp))
-                for iso_comp in isotopologues(composition2formula(formula)))
+                for iso_comp in isotopologues(composition2formula(formula), overall_threshold=1e-4))
     iso_comps = pd.DataFrame(all_comp,
                              columns=['Formula', 'Composition', 'Mass', 'relative_abundance'])
     return iso_comps
@@ -116,3 +117,53 @@ def test_molecule_isodist():
     moles = pd.read_excel('./data/TW80分子式.xlsx')
     next(molecule_isodist(f) for f in moles.to_dict(orient='records'))
 
+
+def topk_dict(_dict, k=5):
+    """
+    _dict中key最大的k个
+    """
+    dict_ = {m: _dict[m] for m in
+             heapq.nlargest(k, _dict, key=_dict.get)}
+    return dict_
+
+
+def filter_nist(isotopes, threshold=1e-5):
+    """
+    过滤prob小于threshold（1e-4）的元素同位素
+    """
+
+    _isotopes = {isotopes[m] for m in isotopes if m > 0 and isotopes[m][1] > threshold}
+    return _isotopes
+
+
+def iso_dist(composition, k=100, ethresshold=1e-5):
+    """
+    计算同位素分布
+    """
+    _nist_mass = {el: filter_nist(nist_mass[el], threshold=ethresshold)
+                  for el in nist_mass if el in composition}
+    # state: value = {mass: prob}
+    new_states = {0: 1}
+    for e in composition:  # 元素组
+        isotopes = _nist_mass[e]
+        for ei in range(composition[e]):  # 元素组内
+            # 开始状态转移
+            if k is not None:
+                states = topk_dict(new_states, k=k)  # todo abundance filter, prob small first, fail fast
+            else:
+                states = new_states
+            new_states = {}
+            for state in states:
+                for _mass, _prob in isotopes:
+                    if state + _mass in new_states:
+                        # todo cluster
+                        new_states[state + _mass] += states[state] * _prob  # 状态转移
+                    else:
+                        new_states[state + _mass] = states[state] * _prob  # 状态转移
+    states = topk_dict(new_states, k=k)
+    return states
+
+
+def test_iso_dist():
+    _composition = {"H": 2, "O": 1}
+    iso_dist(_composition)
