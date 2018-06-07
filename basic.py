@@ -382,17 +382,25 @@ def interp1d(x, xp, yp):
     #  sort xp
     # _xp, _yp= zip(*sorted(zip(xp, yp), key=lambda x: x[0]))
     slopes = [(_ypi1 - _ypi)/(_xpi1 - _xpi) for _xpi, _xpi1, _ypi, _ypi1 in zip(_xp, _xp[1:], _yp, _yp[1:])]
-    # todo: out
     y = [np.nan for xi in x]
-    for _x in x:
+    for ix in range(len(x)):
+        _x = x[ix]
         if (_x >= _min) and (_x <= _max):
-            ix = bisect_left(xp, _x)
-            y[ix] = yp[ix] + slopes[ix]*(_x-xp[ix]) #todo debug
+            ixp = bisect_left(xp, _x) - 1
+            y[ix] = yp[ixp] + slopes[ixp]*(_x-xp[ixp])  # todo debug
     return y
 
 
+def test_interp1():
+    xp = [1, 2]
+    yp = [3, 4]
+    x = [1.5]
+    y = interp1d(x, xp, yp)
+    assert(np.isclose(y[0], 3.5))
+
+
 if __name__ == '__main__':
-    from sklearn.cross_decomposition import PLSRegression, PLSCanonical
+    # from sklearn.cross_decomposition import PLSRegression, PLSCanonical
     def metrics(X, y):
         """
         计算Marker的metrics
@@ -407,6 +415,6 @@ if __name__ == '__main__':
         metrics = pd.DataFrame({'ANOVA_F': _F, 'ANOVA_p': p_F, 'VIP': vip, 'Fold_Change': fc_, 'Corr': r.flatten()})
         return metrics
 
-    x2 = pload('./data/testdata.p')
-    ms = metrics(x2, x2.index.values)
-
+    # x2 = pload('./data/testdata.p')
+    # ms = metrics(x2, x2.index.values)
+    test_interp1()
