@@ -1,3 +1,4 @@
+import time
 import pickle
 from pyteomics import mzxml, auxiliary
 import pandas as pd
@@ -17,6 +18,7 @@ from sklearn.tree import export_graphviz
 from numba import jit
 from sklearn.cross_decomposition import PLSCanonical
 from bisect import bisect_left
+from contextlib import contextmanager
 
 # constant
 SMALL_NUM = 1e-10
@@ -399,15 +401,45 @@ def test_interp1():
     assert(np.isclose(y[0], 3.5))
 
 
+def one_hot_encoder(df, cate_columns=None, na_as_category=True):
+    """
+    one hot encoding
+    :param df:
+    :param na_as_category:
+    :param cate_columns
+    :return:
+    """
+    object_cate = [column for column in df.columns if df[column].dtype == 'object']
+    if cate_columns is not None:
+        cate_columns = cate_columns + object_cate
+    new_df = pd.get_dummies(df, columns=cate_columns, dummy_na=na_as_category)
+    return new_df
+
+
+@contextmanager
+def timer(things):
+    """
+    计时器
+    :param things:
+    :return:
+    """
+    start = time.time()
+    yield
+    print(things+'done in {}s'.format(time.time() - start))
+
+
 if __name__ == '__main__':
     # from sklearn.cross_decomposition import PLSRegression, PLSCanonical
+    X2 = pload('./data/testdata.p')
+    # ms = metrics(x2, x2.index.values)
+
     def metrics(X, y):
         """
         计算Marker的metrics
         """
         _F, p_F = nan_ANOVA(X, y)
         plsca = PLSCanonical(n_components=1)
-        plsca.fit(x2, x2.index.values)
+        plsca.fit(X2, X2.index.values)
         vip = VIP(plsca)
         mean_ = X.groupby(y).mean()
         fc_ = fold_change(mean_.iloc[0], mean_.iloc[1])
@@ -415,6 +447,5 @@ if __name__ == '__main__':
         metrics = pd.DataFrame({'ANOVA_F': _F, 'ANOVA_p': p_F, 'VIP': vip, 'Fold_Change': fc_, 'Corr': r.flatten()})
         return metrics
 
-    # x2 = pload('./data/testdata.p')
     # ms = metrics(x2, x2.index.values)
     test_interp1()
