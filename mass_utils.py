@@ -1,12 +1,24 @@
 import pandas as pd
 import xarray as xr
 import numpy as np
-from pyteomics.mass.mass import isotopic_composition_abundance, isotopologues, nist_mass
+from pyteomics.mass.mass import isotopic_composition_abundance, isotopologues, nist_mass, Composition
 from pyteomics.mass import mass
 import heapq
-
+import re
 # 常数
 PPM = 1e-6
+
+
+def e_formula(str_formula):
+    """
+    将formula表示为元素数目， 而不是其他代码
+    :param str_formula:
+    :return:
+    """
+    any_digit = any(c.isdigit() for c in str_formula)
+    if not any_digit:
+        str_formula += '1'
+    return str_formula
 
 
 def avg_iron(mass, delta=20*PPM, min_intensity=0):

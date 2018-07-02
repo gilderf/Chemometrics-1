@@ -428,6 +428,22 @@ def timer(things):
     print(things+'done in {}s'.format(time.time() - start))
 
 
+def to_sheets(dict_, excel_to, write_index=False, verbose=False):
+    """
+    输出一个字典的dataframe到excel, 每个sheet对应一个dataframe
+    :param dict_:
+    :param excel_to:
+    :param write_index:
+    :param verbose:
+    :return:
+    """
+    excel_writer = pd.ExcelWriter(excel_to)
+    for key in dict_:
+        dict_[key].to_excel(excel_writer, sheet_name=key, index=write_index)
+    if verbose:
+        print('success')
+
+
 if __name__ == '__main__':
     # from sklearn.cross_decomposition import PLSRegression, PLSCanonical
     X2 = pload('./data/testdata.p')
