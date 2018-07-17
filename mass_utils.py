@@ -35,7 +35,7 @@ def avg_iron(mass, delta=20*PPM, min_intensity=0):
     group = mass.groupby('cat')
     mz = group.apply(lambda x: x.mz.dot(x.intensity / x.intensity.sum()))
     mz.name = 'mz'
-    rt = group.apply(lambda x: x.rt.dot(x.intensity / x.intensity.sum()))
+    rt = group.apply(lambda x: x.rt.dot(x.intensity / x.intensity.sum())) # 保留时间加权平均
     rt.name = 'rt'
     intensity = group['intensity'].mean()
     avg = pd.concat([mz, intensity, rt], axis=1)
