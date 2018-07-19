@@ -69,7 +69,7 @@ def make_weights(x):
     return weights
 
 
-def plot_ConfusionMatrix(cm, sorted_unique_labels, normalize=True):
+def plot_ConfusionMatrix(cm, sorted_unique_labels=None, normalize=True):
     """
     画混淆矩阵
     :param cm: confusionMatrix
@@ -78,6 +78,8 @@ def plot_ConfusionMatrix(cm, sorted_unique_labels, normalize=True):
     :return:
     """
     labels = sorted_unique_labels
+    if sorted_unique_labels is None:
+        labels = range(cm.shape[0])
     cm_norm = cm
     if normalize:
         try:
@@ -176,7 +178,7 @@ def plot_tree(clf, feature_names):
     return graphviz.Source(dot_data)
 
 
-def plot_cm(X, y, estimator):
+def plot_cm(y_true, y_pred, labels=None):
     """
     画混淆矩阵
     :param X:
@@ -184,8 +186,8 @@ def plot_cm(X, y, estimator):
     :param estimator:
     :return:
     """
-    cm = confusion_matrix(y, estimator.predict(X))
-    plot_ConfusionMatrix(cm, estimator.classes_)
+    cm = confusion_matrix(y_true, y_pred)
+    plot_ConfusionMatrix(cm, sorted_unique_labels=labels)
 
 
 def VIP(plsca):
