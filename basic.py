@@ -370,7 +370,7 @@ def timer(things):
     """
     start = time.time()
     yield
-    print(things+'done in {}s'.format(time.time() - start))
+    print(things+' done in {}s'.format(round(time.time() - start, 2)))
 
 
 def to_sheets(dict_, excel_to, write_index=False, verbose=False):
