@@ -75,20 +75,10 @@ def get_real(rt):
     return rt.real
 
 
-def read_cdf(filename_or_obj):
-    """
-    read cdf file using xarray, wrapper
-    http://xarray.pydata.org/en/stable/generated/xarray.open_dataset.html
-    :param filename_or_obj:
-    :return:
-    """
-    _a = xr.open_dataset(filename_or_obj)
-    return _a
-
-
 # alias
 read_mzml = mzml.read  # wrapper of mzml.read
 read_jdx = read_dx
+read_cdf = xr.open_dataset
 read_nc = read_cdf
 
 
