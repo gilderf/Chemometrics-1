@@ -1,9 +1,12 @@
 import jcamp
 import spc
+import xarray as xr
 from io import StringIO
-from pyteomics import mzxml
+from pyteomics import mzxml, mzml
 import pandas as pd
 import numpy as np
+
+FORMAT = ['.jdx', '.dx', '.spc', '.mzxml', '.cdf', '.nc']
 
 
 def read_dx(dx_file):
@@ -21,7 +24,7 @@ def read_dx(dx_file):
 
 def read_spc(spc_file):
     """
-    调用spc库，读取spc文件
+    调用spc库，读取spc文件, 一般为光谱
     :param spc_file:
     :return: dataframe
              index：波数
@@ -70,4 +73,43 @@ def rep(c):
 def get_real(rt):
     # 获取保留时间数值min
     return rt.real
+
+
+def read_cdf(filename_or_obj):
+    """
+    read cdf file using xarray, wrapper
+    http://xarray.pydata.org/en/stable/generated/xarray.open_dataset.html
+    :param filename_or_obj:
+    :return:
+    """
+    _a = xr.open_dataset(filename_or_obj)
+    return _a
+
+
+# alias
+read_mzml = mzml.read  # wrapper of mzml.read
+read_jdx = read_dx
+read_nc = read_cdf
+
+
+def test_sanity():
+    jdx = read_jdx('./data/test_dataIO/ds-002-1-1.JDX')
+    dx = read_dx('./data/test_dataIO/H2-1 TWEEN20.24.dx')
+    spc = read_spc('./data/test_dataIO/安徽粉葛10#-10 .spc')
+    mzxml = read_mzxml('./data/test_dataIO/data010.mzXML')
+    cdf = read_cdf('./data/test_dataIO/s069_2017-6-2 1_50_27_020 - 570nm.cdf')
+    nc = read_nc('./data/test_dataIO/Export for CDF - 1052.nc')
+    with read_mzml('./data/test_dataIO/rt_9.mzML') as mzml:
+        print('all pass')
+
+
+if __name__ == '__main__':
+    test_sanity()
+
+
+
+
+
+
+
 

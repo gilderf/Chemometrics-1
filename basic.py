@@ -276,6 +276,7 @@ def nan_ANOVA(X, y):
 
 def test_VIP():
     # shape check
+
     np.random.seed(1)
     LVs = np.random.randn(10, 2)
     X = np.random.randn(10, 100)
