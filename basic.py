@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 import re
 import jcamp
-import spc
+import spc  # Module for reading, exploring and converting *.spc spectroscopic binary data in Python
 from io import StringIO
 import graphviz
 import matplotlib.pyplot as plt
@@ -22,6 +22,7 @@ from contextlib import contextmanager
 
 # constant
 SMALL_NUM = 1e-10
+
 
 
 def merge_csv(flist, **kwargs):
@@ -423,9 +424,10 @@ def timer(things):
     :param things:
     :return:
     """
+    print(things + " starts" )
     start = time.time()
-    yield
-    print(things+'done in {}s'.format(time.time() - start))
+    yield start
+    print(things + ' done in {}s'.format(round(time.time() - start, 2)))
 
 
 if __name__ == '__main__':
