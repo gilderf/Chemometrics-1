@@ -32,19 +32,24 @@ def MSC(X, reference=None):
     return X
 
 
-def first_derivative(X):
-    # 一阶导数
+def first_derivative(X, row=True, _nan=False):
+    # 光谱，一阶导数（行）
 
-    d1_X = derivative(X, degree=1)
+    d1_X = derivative(X, degree=1, _nan=_nan)
+    if row:
+        d1_X = d1_X.T
     return d1_X
 
 
-def derivative(X, degree=1, axis=0):
+def derivative(X, degree=1, axis=0, _nan=False):
     # 导数(列)
 
     d = np.diff(X, n=degree, axis=axis)
-    d1_X = np.vstack([np.nan*np.zeros((degree, X.shape[1])), d])
-    return d1_X
+    if _nan:
+        d_X = np.vstack([np.nan*np.zeros((degree, X.shape[1])), d])
+        return d_X
+    else:
+        return d
 
 
 def test_SNV_MSC_derivatie():
@@ -57,6 +62,7 @@ def test_SNV_MSC_derivatie():
     SNV(X)
     first_derivative(X.T)
 
+# classification
 
 if __name__ == '__main__':
     test_SNV_MSC_derivatie()

@@ -44,29 +44,6 @@ def pload(file_name=None):
         return pickle.load(f)
 
 
-def get_real(rt):
-    # 获取保留时间数值min
-    return rt.real
-
-
-def rep(c):
-    # repmat保留时间，以匹配mz和intensity
-    return np.vstack([c[0], np.tile(c[1], len(c[0])), c[2]]).T
-
-
-def read_mzxml(file_path):
-    """
-    读取质谱mzxml文件，将其转换为pandas-dataframe,columns = columns=['intensity','rt','mz']
-    :param file_path:
-    :return: df
-    """
-    with mzxml.read(file_path) as reader:
-        a = [rep([s['intensity array'], get_real(s['retentionTime']), s['m/z array']]) for s in reader]
-    b = np.vstack(a)
-    df = pd.DataFrame(b, columns=['intensity', 'rt', 'mz'])
-    return df
-
-
 def regstr(text, regexp):
     """
     正则匹配子字符串
@@ -78,34 +55,6 @@ def regstr(text, regexp):
     m = re.search(regexp, text)
     if m:
         return m.group(0)
-
-
-def read_dx(dx_file):
-    """
-    :param dx_file: .dx红外光谱文件
-    :return: pd.Series,波数-吸光度
-    """
-    with open(dx_file) as dx:
-        data = jcamp.jcamp_read(dx)
-        ir = pd.Series(data['y'], name=data['yunits'], index=data['x'])
-        ir.index.name = data['xunits']
-    return ir
-
-
-def read_spc(spc_file):
-    """
-    调用spc库，读取spc文件
-    :param spc_file:
-    :return: dataframe
-             index：波数
-             values: log(1/R)
-    """
-    f = spc.File(spc_file)
-    stringIO = StringIO(f.data_txt())
-    df = pd.read_csv(stringIO, '\t', index_col=0, header=None)
-    df1 = pd.DataFrame(df.values, index=df.index, columns=[f.__dict__['ylabel']])
-    df1.index.name = f.__dict__['xlabel']
-    return df1
 
 
 def make_weights(x):
@@ -121,7 +70,7 @@ def make_weights(x):
     return weights
 
 
-def plot_ConfusionMatrix(cm, sorted_unique_labels, normalize=True):
+def plot_ConfusionMatrix(cm, sorted_unique_labels=None, normalize=True):
     """
     画混淆矩阵
     :param cm: confusionMatrix
@@ -130,6 +79,8 @@ def plot_ConfusionMatrix(cm, sorted_unique_labels, normalize=True):
     :return:
     """
     labels = sorted_unique_labels
+    if sorted_unique_labels is None:
+        labels = range(cm.shape[0])
     cm_norm = cm
     if normalize:
         try:
@@ -212,12 +163,6 @@ def build_clf(X_train, y_train, cv=3):
     return clf
 
 
-def read_hplc_csv(hplc_csv):
-    with open(hplc_csv,'rb') as csv:
-        hplc = pd.read_csv(csv,header=None,names=['retension_time','intensity']).set_index('retension_time')
-        return hplc
-
-
 def plot_tree(clf, feature_names):
     """
     plot decision tree, 画决策树
@@ -234,7 +179,7 @@ def plot_tree(clf, feature_names):
     return graphviz.Source(dot_data)
 
 
-def plot_cm(X, y, estimator):
+def plot_cm(y_true, y_pred, labels=None):
     """
     画混淆矩阵
     :param X:
@@ -242,8 +187,8 @@ def plot_cm(X, y, estimator):
     :param estimator:
     :return:
     """
-    cm = confusion_matrix(y, estimator.predict(X))
-    plot_ConfusionMatrix(cm, estimator.classes_)
+    cm = confusion_matrix(y_true, y_pred)
+    plot_ConfusionMatrix(cm, sorted_unique_labels=labels)
 
 
 def VIP(plsca):
@@ -332,6 +277,7 @@ def nan_ANOVA(X, y):
 
 def test_VIP():
     # shape check
+
     np.random.seed(1)
     LVs = np.random.randn(10, 2)
     X = np.random.randn(10, 100)
@@ -424,10 +370,26 @@ def timer(things):
     :param things:
     :return:
     """
-    print(things + " starts" )
+    print(things + " starts")
     start = time.time()
     yield start
     print(things + ' done in {}s'.format(round(time.time() - start, 2)))
+
+
+def to_sheets(dict_, excel_to, write_index=False, verbose=False):
+    """
+    输出一个字典的dataframe到excel, 每个sheet对应一个dataframe
+    :param dict_:
+    :param excel_to:
+    :param write_index:
+    :param verbose:
+    :return:
+    """
+    excel_writer = pd.ExcelWriter(excel_to)
+    for key in dict_:
+        dict_[key].to_excel(excel_writer, sheet_name=key, index=write_index)
+    if verbose:
+        print('success')
 
 
 if __name__ == '__main__':
