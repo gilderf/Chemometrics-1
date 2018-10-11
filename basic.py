@@ -392,6 +392,33 @@ def to_sheets(dict_, excel_to, write_index=False, verbose=False):
         print('success')
 
 
+def sigmoid(x):
+    _exp = np.where(x > 0, np.exp(-x), np.exp(x))
+    return np.where(x > 0, 1/(1 + _exp), _exp/(_exp + 1))
+
+
+def softmax(x):
+    n_dim = len(x.shape)
+    if n_dim == 1:
+        x -= x.max()
+        scores = np.exp(x)
+        probs = scores/scores.sum()
+    elif n_dim == 2:
+        x -= x.max(axis=1)
+        scores = np.exp(x)
+        probs = scores/scores.sum(axis=1)
+    else:
+        return NotImplementedError
+    return probs
+
+
+def test_sigmoid():
+    x = np.asarray([1, 1])
+    assert np.isclose(np.diff(sigmoid(x)), 0)
+    assert np.isclose(sigmoid(0), 1/2)
+    assert np.isclose(sigmoid(100000), 1)
+
+
 if __name__ == '__main__':
     # from sklearn.cross_decomposition import PLSRegression, PLSCanonical
     X2 = pload('./data/testdata.p')
